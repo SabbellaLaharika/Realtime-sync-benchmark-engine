@@ -1,0 +1,6 @@
+{
+  "server_port": 3000,
+  "ws_path": "/ws",
+  "lp_path": "/api/events",
+  "test_doc_id": "benchmark-room-1"
+}
