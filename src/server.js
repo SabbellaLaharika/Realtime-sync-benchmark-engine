@@ -50,6 +50,59 @@ function broadcast(docId, message, excludeWs = null) {
     if (log.length > 100) log.shift();
 }
 
+// HTTP Long Polling - Post Event
+app.post('/api/event', (req, res) => {
+    const { doc_id, x, y, sent_at, user_id } = req.body;
+    if (!doc_id) return res.status(400).json({ error: 'Missing doc_id' });
+
+    const event = {
+        type: 'cursor',
+        x,
+        y,
+        user_id: user_id || 'anonymous',
+        sent_at: sent_at || String(process.hrtime.bigint())
+    };
+
+    broadcast(doc_id, event);
+    res.status(202).end();
+});
+
+// HTTP Long Polling - Get Events (Long Polling)
+app.get('/api/events', (req, res) => {
+    const { doc_id, since } = req.query;
+    if (!doc_id) return res.status(400).json({ error: 'Missing doc_id' });
+
+    const room = getRoom(doc_id);
+    const userId = uuidv4();
+
+    // Check if there are events since the timestamp
+    if (since) {
+        const sinceTs = parseInt(since);
+        const log = eventLog.get(doc_id) || [];
+        const newEvents = log.filter(e => e.timestamp > sinceTs).map(e => e.event);
+        if (newEvents.length > 0) {
+            return res.json(newEvents);
+        }
+    }
+
+    // Otherwise, hold the request
+    room.lpClients.set(userId, res);
+
+    // Timeout after 30 seconds
+    const timeout = setTimeout(() => {
+        if (room.lpClients.has(userId)) {
+            room.lpClients.delete(userId);
+            res.json([]); // Return empty array on timeout
+        }
+    }, 30000);
+
+    // Cleanup on client close
+    req.on('close', () => {
+        clearTimeout(timeout);
+        room.lpClients.delete(userId);
+    });
+});
+
 // Health Check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'healthy' });
