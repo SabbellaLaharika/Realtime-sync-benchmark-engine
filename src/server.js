@@ -108,6 +108,71 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'healthy' });
 });
 
+server.on('upgrade', (request, socket, head) => {
+    const url = new URL(request.url, `http://${request.headers.host}`);
+    if (url.pathname === '/ws') {
+        const doc_id = url.searchParams.get('doc_id');
+        if (!doc_id) {
+            socket.destroy();
+            return;
+        }
+        wss.handleUpgrade(request, socket, head, (ws) => {
+            wss.emit('connection', ws, request, doc_id);
+        });
+    } else {
+        socket.destroy();
+    }
+});
+
+wss.on('connection', (ws, request, docId) => {
+    const room = getRoom(docId);
+    room.wsClients.add(ws);
+    ws.isAlive = true;
+
+    // Presence broadcast
+    broadcast(docId, { type: 'presence', count: room.wsClients.size });
+
+    ws.on('message', (data) => {
+        try {
+            const message = JSON.parse(data);
+            // Ensure message has current timestamp if missing for benchmarking
+            if (message.type === 'cursor' && !message.sent_at) {
+                message.sent_at = String(process.hrtime.bigint());
+            }
+            broadcast(docId, message, ws);
+        } catch (e) {
+            console.error('Invalid WS message', e);
+        }
+    });
+
+    ws.on('pong', () => {
+        ws.isAlive = true;
+    });
+
+    ws.on('close', () => {
+        room.wsClients.delete(ws);
+        broadcast(docId, { type: 'presence', count: room.wsClients.size });
+    });
+
+    ws.on('error', () => {
+        room.wsClients.delete(ws);
+        broadcast(docId, { type: 'presence', count: room.wsClients.size });
+    });
+});
+
+// Heartbeat interval
+const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+
+wss.on('close', () => {
+    clearInterval(interval);
+});
+
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
