@@ -25,12 +25,12 @@ export default function () {
         sent_at: Date.now().toString() + '000000'
     });
 
-    http.post('http://localhost:3000/api/event', postPayload, {
+    http.post('http://app:3000/api/event', postPayload, {
         headers: { 'Content-Type': 'application/json' },
     });
 
     // LONG POLL
-    const res = http.get(`http://localhost:3000/api/events?doc_id=${docId}`);
+    const res = http.get(`http://app:3000/api/events?doc_id=${docId}`);
     
     check(res, {
         'status is 200': (r) => r.status === 200,

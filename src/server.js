@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const app = express();
 app.use(express.json());
@@ -60,7 +60,7 @@ app.post('/api/event', (req, res) => {
         x,
         y,
         user_id: user_id || 'anonymous',
-        sent_at: sent_at || String(process.hrtime.bigint())
+        sent_at: sent_at || (BigInt(Date.now()) * 1000000n).toString()
     };
 
     broadcast(doc_id, event);
@@ -73,7 +73,7 @@ app.get('/api/events', (req, res) => {
     if (!doc_id) return res.status(400).json({ error: 'Missing doc_id' });
 
     const room = getRoom(doc_id);
-    const userId = uuidv4();
+    const userId = randomUUID();
 
     // Check if there are events since the timestamp
     if (since) {
@@ -128,7 +128,6 @@ wss.on('connection', (ws, request, docId) => {
     const room = getRoom(docId);
     room.wsClients.add(ws);
     ws.isAlive = true;
-
     // Presence broadcast
     broadcast(docId, { type: 'presence', count: room.wsClients.size });
 
@@ -137,7 +136,7 @@ wss.on('connection', (ws, request, docId) => {
             const message = JSON.parse(data);
             // Ensure message has current timestamp if missing for benchmarking
             if (message.type === 'cursor' && !message.sent_at) {
-                message.sent_at = String(process.hrtime.bigint());
+                message.sent_at = (BigInt(Date.now()) * 1000000n).toString();
             }
             broadcast(docId, message, ws);
         } catch (e) {

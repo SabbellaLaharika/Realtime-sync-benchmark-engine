@@ -11,7 +11,7 @@ const wsLatency = new Trend('ws_latency');
 
 export default function () {
     const docId = 'benchmark-room-1';
-    const url = `ws://localhost:3000/ws?doc_id=${docId}`;
+    const url = `ws://app:3000/ws?doc_id=${docId}`;
     const params = { tags: { my_tag: 'hello' } };
 
     const res = ws.connect(url, params, function (socket) {
