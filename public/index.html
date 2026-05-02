@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cursor Sync Benchmark</title>
+    <style>
+        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; overflow: hidden; }
+        #canvas { width: 100vw; height: 100vh; position: relative; }
+        .cursor {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.05s linear;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        .label { position: absolute; font-size: 10px; margin-top: 15px; white-space: nowrap; }
+        #status { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="status">Connecting...</div>
+    <div id="canvas"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const status = document.getElementById('status');
+        const docId = new URLSearchParams(window.location.search).get('doc_id') || 'benchmark-room-1';
+        const userId = 'user-' + Math.random().toString(36).substr(2, 5);
+        const cursors = {};
+
+        const ws = new WebSocket(`ws://${window.location.host}/ws?doc_id=${docId}`);
+        
+        ws.onopen = () => { status.innerText = `Connected as ${userId} (WS)`; };
+
+        ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'cursor' && msg.user_id !== userId) {
+                updateCursor(msg.user_id, msg.x, msg.y);
+            } else if (msg.type === 'presence') {
+                status.innerText = `Connected | Users: ${msg.count}`;
+            }
+        };
+
+        window.addEventListener('mousemove', (e) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'cursor',
+                    x: (e.clientX / window.innerWidth) * 100,
+                    y: (e.clientY / window.innerHeight) * 100,
+                    user_id: userId,
+                    sent_at: (BigInt(Date.now()) * 1000000n).toString()
+                }));
+            }
+        });
+
+        function updateCursor(id, x, y) {
+            let el = cursors[id];
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'cursor';
+                const label = document.createElement('div');
+                label.className = 'label';
+                label.innerText = id;
+                el.appendChild(label);
+                canvas.appendChild(el);
+                cursors[id] = el;
+            }
+            el.style.left = x + '%';
+            el.style.top = y + '%';
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ const { randomUUID } = require('crypto');
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public'));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true });
@@ -12,14 +13,15 @@ const wss = new WebSocketServer({ noServer: true });
 const PORT = process.env.PORT || 3000;
 
 // Room Manager State
-const rooms = new Map(); // doc_id -> { wsClients: Set, lpClients: Map }
+const rooms = new Map(); // doc_id -> { wsClients: Set, lpClients: Map, positions: Map }
 const eventLog = new Map(); // doc_id -> [{ event, timestamp }]
 
 function getRoom(docId) {
     if (!rooms.has(docId)) {
         rooms.set(docId, {
             wsClients: new Set(),
-            lpClients: new Map() // user_id -> res object
+            lpClients: new Map(), // user_id -> res object
+            positions: new Map() // user_id -> position data
         });
         eventLog.set(docId, []);
     }
@@ -28,6 +30,11 @@ function getRoom(docId) {
 
 function broadcast(docId, message, excludeWs = null) {
     const room = getRoom(docId);
+    
+    // Update active user position
+    if (message.type === 'cursor' && message.user_id) {
+        room.positions.set(message.user_id, { x: message.x, y: message.y });
+    }
     
     // Broadcast to WebSockets
     const wsMessage = JSON.stringify(message);
