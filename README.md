@@ -39,6 +39,14 @@ docker-compose ps
 # Ensure the 'app' container status is (healthy)
 ```
 
+### 3. Visual Demo
+Open your browser to test the real-time synchronization visually:
+*   Navigate to: `http://localhost:3000/?doc_id=test-room`
+*   Open the same link in a **second window** to see the synchronized cursors move in real-time.
+
+## 📈 Performance Results
+Detailed analysis, latency CDF graphs, and protocol jitter animations are available in the **[REPORT.md](./REPORT.md)**.
+
 ## 📊 Benchmarking
 
 ### Thundering Herd Simulation
@@ -52,12 +60,18 @@ Run protocol-specific latency tests using the provided k6 scripts:
 
 **Long Polling:**
 ```bash
+# PowerShell
 Get-Content benchmarks/k6_lp.js | docker run --rm -i --network realtime-sync-benchmark-engine_default grafana/k6 run -
+# Bash
+cat benchmarks/k6_lp.js | docker run --rm -i --network realtime-sync-benchmark-engine_default grafana/k6 run -
 ```
 
 **WebSockets:**
 ```bash
+# PowerShell
 Get-Content benchmarks/k6_ws.js | docker run --rm -i --network realtime-sync-benchmark-engine_default grafana/k6 run -
+# Bash
+cat benchmarks/k6_ws.js | docker run --rm -i --network realtime-sync-benchmark-engine_default grafana/k6 run -
 ```
 
 ## 🌐 Network Simulation

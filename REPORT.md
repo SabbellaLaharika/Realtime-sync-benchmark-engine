@@ -23,8 +23,9 @@
 
 ## 3. Cursor Jitter Comparison
 
-> [!NOTE]
-> **Recording Note**: A 10-second high-resolution GIF comparing protocol jitter under 2% packet loss is being finalized and will be added to the assets folder. Initial manual tests confirm that WebSockets maintain fluid movement while Long Polling exhibits noticeable snapping at the 30s poll boundary.
+Below is the recording of actual cursor movement synchronization across multiple windows.
+
+![Cursor Jitter Animation](./assets/jitter-comparison.gif)
 
 *   **Left (WebSockets)**: Continuous, fluid movement even with minor loss due to full-duplex delivery.
 *   **Right (Long Polling)**: Noticeable "snapping" and jitter as cursor updates wait for the next poll cycle.
