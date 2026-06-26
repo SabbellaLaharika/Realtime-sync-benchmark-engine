@@ -9,38 +9,6 @@ A high-performance live document synchronization engine built to benchmark the t
 Our synchronization engine utilizes a multi-instance scaling strategy using **Redis** as a distributed communication backplane.
 
 ![System Architecture](./assets/system_architecture.png)
-
-```mermaid
-graph TD
-    classDef client fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
-    classDef server fill:#a855f7,stroke:#7e22ce,stroke-width:2px,color:#fff;
-    classDef db fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff;
-    classDef lb fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff;
-
-    C1["Client 1 (WebSockets)"]:::client
-    C2["Client 2 (Long Polling)"]:::client
-    C3["Client 3 (WebSockets)"]:::client
-
-    LB["Load Balancer / Gateway"]:::lb
-
-    App1["App Server Instance 1<br>(Node.js/Express)"]:::server
-    App2["App Server Instance 2<br>(Node.js/Express)"]:::server
-
-    Redis["Redis Database<br>(Pub/Sub & Shared State)"]:::db
-
-    C1 --> LB
-    C2 --> LB
-    C3 --> LB
-
-    LB --> App1
-    LB --> App2
-
-    App1 <-->|Pub/Sub room:doc_id| Redis
-    App2 <-->|Pub/Sub room:doc_id| Redis
-    App1 -->|rpush room:events| Redis
-    App2 -->|hset room:presence| Redis
-```
-
 ---
 
 ## 🚀 Key Features
