@@ -4,6 +4,12 @@ A high-performance live document synchronization engine built to benchmark the t
 
 ---
 
+## 🎥 Project Demo
+
+[![Watch the Real-Time Collaboration Sync Engine demo on YouTube](https://img.youtube.com/vi/KAI5O-VcRtA/hqdefault.jpg)](https://youtu.be/KAI5O-VcRtA)
+
+---
+
 ## 🏗️ System Architecture
 
 Our synchronization engine utilizes a multi-instance scaling strategy using **Redis** as a distributed communication backplane.
