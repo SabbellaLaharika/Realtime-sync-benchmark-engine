@@ -6,7 +6,7 @@ A high-performance live document synchronization engine built to benchmark the t
 
 ## 🎥 Project Demo
 
-[![Watch the Real-Time Collaboration Sync Engine demo on YouTube](https://img.youtube.com/vi/KAI5O-VcRtA/hqdefault.jpg)](https://youtu.be/KAI5O-VcRtA)
+[![Watch the Real-Time Collaboration Sync Engine demo on YouTube](https://img.youtube.com/vi/KAI5O-VcRtA/maxresdefault.jpg)](https://youtu.be/KAI5O-VcRtA)
 
 ---
 
